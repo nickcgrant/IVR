@@ -1199,11 +1199,12 @@
             document.getElementById('resetBtn').style.display = 'none';
             document.getElementById('simulateBtn').style.display = 'inline-block';
             
-            // Reset user input
-            document.getElementById('userNameInput').style.display = 'block';
-            document.getElementById('userNameInput').value = '';
-            document.getElementById('currentUser').style.display = 'none';
-            currentUser = null;
+            // Only reset user input if no name is currently set
+            if (!currentUser) {
+                document.getElementById('userNameInput').style.display = 'block';
+                document.getElementById('userNameInput').value = '';
+                document.getElementById('currentUser').style.display = 'none';
+            }
         }
 
         // API Functions - Replace these with your actual API calls
