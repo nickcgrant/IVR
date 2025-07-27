@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IVR Flow Builder</title>
+    <title>IVR Flow Builder - Pensions Edition</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
         
@@ -839,6 +839,26 @@
                     <h4>◈ SELF-SERVICE PORTAL</h4>
                     <p>AUTOMATED BALANCE AND INFO LOOKUP</p>
                 </div>
+
+                <div class="block" data-type="chat-human">
+                    <h4>💬 CHAT WITH A HUMAN</h4>
+                    <p>CONNECT TO LIVE CHAT AGENT</p>
+                </div>
+
+                <div class="block" data-type="chat-bot">
+                    <h4>🤖 CHAT WITH CHATBOT</h4>
+                    <p>AI-POWERED AUTOMATED ASSISTANCE</p>
+                </div>
+
+                <div class="block" data-type="whatsapp">
+                    <h4>📱 DISCUSS OVER WHATSAPP</h4>
+                    <p>CONTINUE CONVERSATION ON WHATSAPP</p>
+                </div>
+
+                <div class="block" data-type="email">
+                    <h4>📧 SEND US AN EMAIL</h4>
+                    <p>ASYNCHRONOUS EMAIL SUPPORT</p>
+                </div>
             </div>
 
             <div class="flow-area">
@@ -852,7 +872,6 @@
         <div class="controls">
             <button class="btn" id="clearBtn">◄ CLEAR FLOW</button>
             <button class="btn" id="simulateBtn" disabled>► RUN SIMULATION (1000 CALLS)</button>
-            <button class="btn" id="resetBtn" style="display: none;">◄► TRY AGAIN</button>
         </div>
 
         <div class="results" id="results">
@@ -942,7 +961,11 @@
             'queue-info': { time: 10, satisfaction: 0.15, abandonment: -0.05, cost: 0.04 },
             'advisor': { time: 300, satisfaction: 0.4, abandonment: 0, cost: 8.50 },
             'callback': { time: 30, satisfaction: 0.3, abandonment: -0.15, cost: 0.75 },
-            'self-service': { time: 90, satisfaction: 0.2, abandonment: 0.1, deflection: 0.2, cost: 0.25 }
+            'self-service': { time: 90, satisfaction: 0.2, abandonment: 0.1, deflection: 0.2, cost: 0.25 },
+            'chat-human': { time: 240, satisfaction: 0.35, abandonment: 0.02, cost: 6.80 },
+            'chat-bot': { time: 120, satisfaction: 0.15, abandonment: 0.08, deflection: 0.25, cost: 0.35 },
+            'whatsapp': { time: 45, satisfaction: 0.25, abandonment: -0.1, deflection: 0.4, cost: 0.20 },
+            'email': { time: 20, satisfaction: 0.1, abandonment: -0.2, deflection: 0.5, cost: 0.08 }
         };
 
         // Initialize drag and drop
@@ -951,7 +974,6 @@
             const dropZone = document.getElementById('dropZone');
             const simulateBtn = document.getElementById('simulateBtn');
             const clearBtn = document.getElementById('clearBtn');
-            const resetBtn = document.getElementById('resetBtn');
             const userNameInput = document.getElementById('userNameInput');
             const leaderboardBtn = document.getElementById('leaderboardBtn');
             const closeLeaderboard = document.getElementById('closeLeaderboard');
@@ -968,7 +990,6 @@
 
             simulateBtn.addEventListener('click', runSimulation);
             clearBtn.addEventListener('click', clearFlow);
-            resetBtn.addEventListener('click', resetGame);
             userNameInput.addEventListener('blur', handleNameInput);
             userNameInput.addEventListener('keypress', handleNameKeypress);
             leaderboardBtn.addEventListener('click', showLeaderboard);
@@ -1023,7 +1044,11 @@
                 'queue-info': { title: '⧖ QUEUE INFORMATION', desc: 'INFORM ABOUT CURRENT WAIT TIMES' },
                 'advisor': { title: '◙ CONNECT TO ADVISOR', desc: 'TRANSFER TO HUMAN SPECIALIST' },
                 'callback': { title: '☎ CALLBACK OPTION', desc: 'OFFER TO CALL CUSTOMER BACK' },
-                'self-service': { title: '◈ SELF-SERVICE PORTAL', desc: 'AUTOMATED BALANCE AND INFO LOOKUP' }
+                'self-service': { title: '◈ SELF-SERVICE PORTAL', desc: 'AUTOMATED BALANCE AND INFO LOOKUP' },
+                'chat-human': { title: '💬 CHAT WITH A HUMAN', desc: 'CONNECT TO LIVE CHAT AGENT' },
+                'chat-bot': { title: '🤖 CHAT WITH CHATBOT', desc: 'AI-POWERED AUTOMATED ASSISTANCE' },
+                'whatsapp': { title: '📱 DISCUSS OVER WHATSAPP', desc: 'CONTINUE CONVERSATION ON WHATSAPP' },
+                'email': { title: '📧 SEND US AN EMAIL', desc: 'ASYNCHRONOUS EMAIL SUPPORT' }
             };
 
             return {
@@ -1081,6 +1106,8 @@
             flowBlocks = [];
             renderFlow();
             updateButtons();
+            // Hide results when clearing flow
+            document.getElementById('results').style.display = 'none';
         }
 
         function updateButtons() {
@@ -1159,8 +1186,7 @@
             saveScore(currentUser, results.totalScore);
             
             document.getElementById('results').style.display = 'block';
-            document.getElementById('resetBtn').style.display = 'inline-block';
-            document.getElementById('simulateBtn').style.display = 'none';
+            // Keep simulate button visible for easy re-running
         }
 
         function calculateResults() {
@@ -1210,21 +1236,7 @@
             };
         }
 
-        function resetGame() {
-            flowBlocks = [];
-            renderFlow();
-            updateButtons();
-            document.getElementById('results').style.display = 'none';
-            document.getElementById('resetBtn').style.display = 'none';
-            document.getElementById('simulateBtn').style.display = 'inline-block';
-            
-            // Only reset user input if no name is currently set
-            if (!currentUser) {
-                document.getElementById('userNameInput').style.display = 'block';
-                document.getElementById('userNameInput').value = '';
-                document.getElementById('currentUser').style.display = 'none';
-            }
-        }
+        // Remove the resetGame function as it's no longer needed
 
         // API Functions - Replace these with your actual API calls
         async function saveScore(playerName, score) {
