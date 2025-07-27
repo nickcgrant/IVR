@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IVR Flow Builder - Pensions Edition</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Orbitron', monospace;
+            background: #000;
+            min-height: 100vh;
+            padding: 10px;
+            color: #00ff00;
+            overflow-x: auto;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: #001122;
+            border: 4px solid #00ffff;
+            box-shadow: 
+                0 0 20px #00ffff,
+                inset 0 0 20px rgba(0, 255, 255, 0.1);
+        }
+
+        .header {
+            background: linear-gradient(90deg, #ff00ff, #00ffff, #ffff00);
+            color: #000;
+            padding: 20px;
+            text-align: center;
+            border-bottom: 4px solid #00ffff;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            animation: shine 3s infinite;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            font-weight: 900;
+            margin-bottom: 5px;
+            text-shadow: 2px 2px 0px #ff00ff;
+            letter-spacing: 3px;
+        }
+
+        .header p {
+            font-size: 1em;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .user-section {
+            background: #000033;
+            padding: 15px 20px;
+            border-bottom: 2px solid #00ff00;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-input {
+            background: #000;
+            border: 2px solid #00ff00;
+            color: #00ff00;
+            padding: 8px 12px;
+            font-family: 'Orbitron', monospace;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+        }
+
+        .user-input::placeholder {
+            color: #006600;
+            text-transform: uppercase;
+        }
+
+        .user-input:focus {
+            outline: none;
+            box-shadow: 0 0 15px #00ff00;
+            border-color: #00ffff;
+        }
+
+        .current-user {
+            color: #00ffff;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-shadow: 0 0 10px #00ffff;
+        }
+
+        .leaderboard-toggle {
+            background: linear-gradient(45deg, #ffff00, #ff00ff);
+            color: #000;
+            border: 2px solid #fff;
+            padding: 8px 15px;
+            cursor: pointer;
+            font-size: 0.8em;
+            font-weight: bold;
+            font-family: 'Orbitron', monospace;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.2s ease;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+
+        .leaderboard-toggle:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
+        }
+
+        .game-area {
+            display: flex;
+            min-height: 600px;
+            background: #000011;
+        }
+
+        .blocks-panel {
+            width: 300px;
+            background: #001133;
+            padding: 15px;
+            border-right: 4px solid #00ff00;
+            box-shadow: inset 0 0 10px rgba(0, 255, 0, 0.2);
+        }
+
+        .blocks-panel h3 {
+            margin-bottom: 15px;
+            color: #ffff00;
+            font-size: 1.1em;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px #ffff00;
+            letter-spacing: 2px;
+            border-bottom: 2px solid #ffff00;
+            padding-bottom: 5px;
+        }
+
+        .block {
+            background: #000;
+            border: 3px solid #ff00ff;
+            padding: 12px;
+            margin-bottom: 12px;
+            cursor: grab;
+            transition: all 0.2s ease;
+            box-shadow: 
+                0 0 10px #ff00ff,
+                inset 0 0 5px rgba(255, 0, 255, 0.1);
+            position: relative;
+        }
+
+        .block::before {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            right: 2px;
+            bottom: 2px;
+            background: linear-gradient(45deg, 
+                rgba(255, 0, 255, 0.1) 0%, 
+                rgba(0, 255, 255, 0.1) 50%, 
+                rgba(255, 255, 0, 0.1) 100%);
+            z-index: -1;
+        }
+
+        .block:hover {
+            border-color: #00ffff;
+            box-shadow: 
+                0 0 20px #00ffff,
+                inset 0 0 10px rgba(0, 255, 255, 0.2);
+            transform: scale(1.05);
+        }
+
+        .block:active {
+            cursor: grabbing;
+            transform: scale(0.95);
+        }
+
+        .block h4 {
+            color: #00ffff;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .block p {
+            color: #00ff00;
+            font-size: 0.7em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .flow-area {
+            flex: 1;
+            padding: 15px;
+            background: #000022;
+            position: relative;
+        }
+
+        .flow-area h3 {
+            margin-bottom: 15px;
+            color: #ffff00;
+            font-size: 1.1em;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px #ffff00;
+            letter-spacing: 2px;
+            border-bottom: 2px solid #ffff00;
+            padding-bottom: 5px;
+        }
+
+        .drop-zone {
+            min-height: 400px;
+            border: 3px dashed #00ff00;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 10px,
+                rgba(0, 255, 0, 0.05) 10px,
+                rgba(0, 255, 0, 0.05) 20px
+            );
+        }
+
+        .drop-zone.drag-over {
+            border-color: #ffff00;
+            background: rgba(255, 255, 0, 0.1);
+            box-shadow: inset 0 0 20px rgba(255, 255, 0, 0.3);
+        }
+
+        .drop-zone.has-blocks {
+            justify-content: flex-start;
+            padding-top: 20px;
+        }
+
+        .placeholder {
+            color: #00ff00;
+            font-size: 1em;
+            text-align: center;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px #00ff00;
+            animation: blink 2s infinite;
+        }
+
+        .flow-block {
+            background: #000;
+            border: 3px solid #00ffff;
+            padding: 12px;
+            margin-bottom: 15px;
+            width: 100%;
+            max-width: 400px;
+            position: relative;
+            box-shadow: 
+                0 0 15px #00ffff,
+                inset 0 0 10px rgba(0, 255, 255, 0.1);
+        }
+
+        .flow-block::before {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            right: 2px;
+            bottom: 2px;
+            background: linear-gradient(45deg, 
+                rgba(0, 255, 255, 0.1) 0%, 
+                rgba(255, 0, 255, 0.1) 50%, 
+                rgba(255, 255, 0, 0.1) 100%);
+            z-index: -1;
+        }
+
+        .flow-block::after {
+            content: '▼';
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #00ffff;
+            font-size: 20px;
+            font-weight: bold;
+            text-shadow: 0 0 10px #00ffff;
+            animation: pulse 2s infinite;
+        }
+
+        .flow-block:last-child::after {
+            display: none;
+        }
+
+        .flow-block h4 {
+            color: #ffff00;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .flow-block p {
+            color: #00ff00;
+            font-size: 0.7em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .remove-btn {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #ff0000;
+            color: #fff;
+            border: 2px solid #fff;
+            width: 25px;
+            height: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 10px #ff0000;
+        }
+
+        .remove-btn:hover {
+            background: #fff;
+            color: #ff0000;
+            box-shadow: 0 0 15px #ff0000;
+        }
+
+        .controls {
+            padding: 20px;
+            background: #001144;
+            text-align: center;
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            align-items: center;
+            border-top: 4px solid #00ff00;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #ff00ff, #00ffff);
+            color: #000;
+            border: 3px solid #fff;
+            padding: 12px 25px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: bold;
+            font-family: 'Orbitron', monospace;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.2s ease;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+            position: relative;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            right: 2px;
+            bottom: 2px;
+            background: linear-gradient(45deg, #ffff00, #ff00ff);
+            z-index: -1;
+        }
+
+        .btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 25px rgba(255, 255, 255, 0.8);
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .btn:disabled {
+            background: #333;
+            color: #666;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+            border-color: #666;
+        }
+
+        .btn:disabled::before {
+            background: #222;
+        }
+
+        .simulation-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .simulation-content {
+            background: #000;
+            border: 4px solid #00ffff;
+            padding: 40px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 
+                0 0 30px #00ffff,
+                inset 0 0 20px rgba(0, 255, 255, 0.1);
+        }
+
+        .simulation-content h2 {
+            color: #ffff00;
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-shadow: 0 0 15px #ffff00;
+        }
+
+        .simulation-content p {
+            color: #00ff00;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #001122;
+            border: 2px solid #00ff00;
+            overflow: hidden;
+            margin: 20px 0;
+            box-shadow: inset 0 0 10px rgba(0, 255, 0, 0.3);
+        }
+
+        .progress {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff00, #ffff00, #ff00ff);
+            width: 0%;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+            animation: progressGlow 1s infinite alternate;
+        }
+
+        .results {
+            display: none;
+            padding: 20px;
+            background: #000033;
+            border-top: 4px solid #ff00ff;
+        }
+
+        .score-card {
+            background: #000;
+            border: 4px solid #ffff00;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 20px;
+            box-shadow: 
+                0 0 25px #ffff00,
+                inset 0 0 15px rgba(255, 255, 0, 0.1);
+        }
+
+        .score {
+            font-size: 4em;
+            font-weight: 900;
+            color: #00ffff;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px #00ffff;
+            animation: scoreGlow 2s infinite alternate;
+        }
+
+        .score-card h3 {
+            color: #ffff00;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 1em;
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .metric {
+            background: #000;
+            border: 3px solid #ff00ff;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 
+                0 0 15px #ff00ff,
+                inset 0 0 10px rgba(255, 0, 255, 0.1);
+        }
+
+        .metric h4 {
+            color: #00ffff;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.8em;
+        }
+
+        .metric .value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #00ff00;
+            text-shadow: 0 0 10px #00ff00;
+        }
+
+        /* Leaderboard Styles */
+        .leaderboard-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1001;
+        }
+
+        .leaderboard-content {
+            background: #000;
+            border: 4px solid #ffff00;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 
+                0 0 30px #ffff00,
+                inset 0 0 20px rgba(255, 255, 0, 0.1);
+        }
+
+        .leaderboard-header {
+            text-align: center;
+            margin-bottom: 25px;
+            border-bottom: 3px solid #00ffff;
+            padding-bottom: 15px;
+        }
+
+        .leaderboard-header h2 {
+            color: #ffff00;
+            font-size: 2em;
+            font-weight: 900;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-shadow: 0 0 15px #ffff00;
+        }
+
+        .leaderboard-list {
+            margin-bottom: 20px;
+        }
+
+        .leaderboard-item {
+            background: #001122;
+            border: 2px solid #00ff00;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s ease;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+        }
+
+        .leaderboard-item:hover {
+            border-color: #00ffff;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+        }
+
+        .leaderboard-item.current-user-entry {
+            border-color: #ff00ff;
+            background: #110022;
+            box-shadow: 0 0 15px rgba(255, 0, 255, 0.5);
+        }
+
+        .leaderboard-rank {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #ffff00;
+            min-width: 50px;
+            text-shadow: 0 0 10px #ffff00;
+        }
+
+        .leaderboard-rank.top-3 {
+            color: #ff00ff;
+            text-shadow: 0 0 15px #ff00ff;
+        }
+
+        .leaderboard-name {
+            flex: 1;
+            color: #00ffff;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 0 15px;
+        }
+
+        .leaderboard-score {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #00ff00;
+            text-shadow: 0 0 10px #00ff00;
+        }
+
+        .close-leaderboard {
+            background: linear-gradient(45deg, #ff0000, #ff6600);
+            color: #fff;
+            border: 2px solid #fff;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: bold;
+            font-family: 'Orbitron', monospace;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.2s ease;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+            display: block;
+            margin: 0 auto;
+        }
+
+        .close-leaderboard:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #00ff00;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+
+        .error-message {
+            color: #ff0000;
+            background: #220000;
+            border: 2px solid #ff0000;
+            padding: 10px;
+            margin: 10px 0;
+            text-align: center;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
+        }
+
+        .success-message {
+            color: #00ff00;
+            background: #002200;
+            border: 2px solid #00ff00;
+            padding: 10px;
+            margin: 10px 0;
+            text-align: center;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.3; }
+        }
+
+        @keyframes pulse {
+            0% { transform: translateX(-50%) scale(1); }
+            50% { transform: translateX(-50%) scale(1.2); }
+            100% { transform: translateX(-50%) scale(1); }
+        }
+
+        @keyframes shine {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        @keyframes progressGlow {
+            0% { box-shadow: 0 0 5px rgba(255, 255, 255, 0.5); }
+            100% { box-shadow: 0 0 20px rgba(255, 255, 255, 1); }
+        }
+
+        @keyframes scoreGlow {
+            0% { text-shadow: 0 0 10px #00ffff; }
+            100% { text-shadow: 0 0 30px #00ffff, 0 0 40px #00ffff; }
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .simulating {
+            animation: pulse 1s infinite;
+        }
+
+        /* Retro scan lines effect */
+        .container::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0, 255, 0, 0.03) 2px,
+                rgba(0, 255, 0, 0.03) 4px
+            );
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .game-area {
+                flex-direction: column;
+            }
+            
+            .blocks-panel {
+                width: 100%;
+                border-right: none;
+                border-bottom: 4px solid #00ff00;
+            }
+            
+            .user-section {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .controls {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>█ IVR FLOW BUILDER █</h1>
+            <p>DESIGN THE PERFECT CUSTOMER JOURNEY FOR PENSIONPRO</p>
+        </div>
+
+        <div class="user-section">
+            <div class="user-info">
+                <input type="text" id="userNameInput" class="user-input" placeholder="Enter your name..." maxlength="20">
+                <div class="current-user" id="currentUser" style="display: none;">
+                    Player: <span id="currentUserName"></span>
+                </div>
+            </div>
+            <button class="leaderboard-toggle" id="leaderboardBtn">🏆 VIEW LEADERBOARD</button>
+        </div>
+
+        <div class="game-area">
+            <div class="blocks-panel">
+                <h3>▼ AVAILABLE BLOCKS ▼</h3>
+                
+                <div class="block" data-type="welcome">
+                    <h4>♪ WELCOME MESSAGE</h4>
+                    <p>GREET CUSTOMERS WITH FRIENDLY MESSAGE</p>
+                </div>
+
+                <div class="block" data-type="id-verify">
+                    <h4>◊ ID VERIFICATION</h4>
+                    <p>SECURE CUSTOMER AUTHENTICATION</p>
+                </div>
+
+                <div class="block" data-type="menu">
+                    <h4>≡ MAIN MENU</h4>
+                    <p>PRESENT SERVICE OPTIONS TO CUSTOMERS</p>
+                </div>
+
+                <div class="block" data-type="app-deflection">
+                    <h4>▣ APP DEFLECTION</h4>
+                    <p>DIRECT TECH-SAVVY USERS TO MOBILE APP</p>
+                </div>
+
+                <div class="block" data-type="queue-info">
+                    <h4>⧖ QUEUE INFORMATION</h4>
+                    <p>INFORM ABOUT CURRENT WAIT TIMES</p>
+                </div>
+
+                <div class="block" data-type="advisor">
+                    <h4>◙ CONNECT TO ADVISOR</h4>
+                    <p>TRANSFER TO HUMAN SPECIALIST</p>
+                </div>
+
+                <div class="block" data-type="callback">
+                    <h4>☎ CALLBACK OPTION</h4>
+                    <p>OFFER TO CALL CUSTOMER BACK</p>
+                </div>
+
+                <div class="block" data-type="self-service">
+                    <h4>◈ SELF-SERVICE PORTAL</h4>
+                    <p>AUTOMATED BALANCE AND INFO LOOKUP</p>
+                </div>
+            </div>
+
+            <div class="flow-area">
+                <h3>▼ YOUR IVR FLOW ▼</h3>
+                <div class="drop-zone" id="dropZone">
+                    <div class="placeholder">▲ DRAG BLOCKS HERE TO BUILD YOUR IVR FLOW ▲</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn" id="clearBtn">◄ CLEAR FLOW</button>
+            <button class="btn" id="simulateBtn" disabled>► RUN SIMULATION (1000 CALLS)</button>
+            <button class="btn" id="resetBtn" style="display: none;">◄► TRY AGAIN</button>
+        </div>
+
+        <div class="results" id="results">
+            <div class="score-card">
+                <div class="score" id="totalScore">0</div>
+                <h3>OVERALL PERFORMANCE SCORE</h3>
+                <div id="scoreMessage"></div>
+            </div>
+            <div class="metrics">
+                <div class="metric">
+                    <h4>AVERAGE CALL TIME</h4>
+                    <div class="value" id="avgCallTime">0 MIN</div>
+                </div>
+                <div class="metric">
+                    <h4>CUSTOMER SATISFACTION</h4>
+                    <div class="value" id="satisfaction">0%</div>
+                </div>
+                <div class="metric">
+                    <h4>COST PER CALL</h4>
+                    <div class="value" id="costPerCall">£0.00</div>
+                </div>
+                <div class="metric">
+                    <h4>APP DEFLECTION RATE</h4>
+                    <div class="value" id="deflectionRate">0%</div>
+                </div>
+                <div class="metric">
+                    <h4>ABANDONMENT RATE</h4>
+                    <div class="value" id="abandonmentRate">0%</div>
+                </div>
+                <div class="metric">
+                    <h4>TOTAL COST (1000 CALLS)</h4>
+                    <div class="value" id="totalCost">£0</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="simulation-overlay" id="simulationOverlay">
+        <div class="simulation-content">
+            <h2>◄► RUNNING SIMULATION</h2>
+            <p>PROCESSING 1000 CUSTOMER CALLS THROUGH YOUR IVR FLOW...</p>
+            <div class="progress-bar">
+                <div class="progress" id="progress"></div>
+            </div>
+            <p id="progressText">0 / 1000 CALLS PROCESSED</p>
+        </div>
+    </div>
