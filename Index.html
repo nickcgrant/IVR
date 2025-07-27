@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IVR Flow Builder - Pensions Edition</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Orbitron', monospace;
+            background: #000;
+            min-height: 100vh;
+            padding: 10px;
+            color: #00ff00;
+            overflow-x: auto;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: #001122;
+            border: 4px solid #00ffff;
+            box-shadow: 
+                0 0 20px #00ffff,
+                inset 0 0 20px rgba(0, 255, 255, 0.1);
+        }
+
+        .header {
+            background: linear-gradient(90deg, #ff00ff, #00ffff, #ffff00);
+            color: #000;
+            padding: 20px;
+            text-align: center;
+            border-bottom: 4px solid #00ffff;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            animation: shine 3s infinite;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            font-weight: 900;
+            margin-bottom: 5px;
+            text-shadow: 2px 2px 0px #ff00ff;
+            letter-spacing: 3px;
+        }
+
+        .header p {
+            font-size: 1em;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .game-area {
+            display: flex;
+            min-height: 600px;
+            background: #000011;
+        }
+
+        .blocks-panel {
+            width: 300px;
+            background: #001133;
+            padding: 15px;
+            border-right: 4px solid #00ff00;
+            box-shadow: inset 0 0 10px rgba(0, 255, 0, 0.2);
+        }
+
+        .blocks-panel h3 {
+            margin-bottom: 15px;
+            color: #ffff00;
+            font-size: 1.1em;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px #ffff00;
+            letter-spacing: 2px;
+            border-bottom: 2px solid #ffff00;
+            padding-bottom: 5px;
+        }
+
+        .block {
+            background: #000;
+            border: 3px solid #ff00ff;
+            padding: 12px;
+            margin-bottom: 12px;
+            cursor: grab;
+            transition: all 0.2s ease;
+            box-shadow: 
+                0 0 10px #ff00ff,
+                inset 0 0 5px rgba(255, 0, 255, 0.1);
+            position: relative;
+        }
+
+        .block::before {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            right: 2px;
+            bottom: 2px;
+            background: linear-gradient(45deg, 
+                rgba(255, 0, 255, 0.1) 0%, 
+                rgba(0, 255, 255, 0.1) 50%, 
+                rgba(255, 255, 0, 0.1) 100%);
+            z-index: -1;
+        }
+
+        .block:hover {
+            border-color: #00ffff;
+            box-shadow: 
+                0 0 20px #00ffff,
+                inset 0 0 10px rgba(0, 255, 255, 0.2);
+            transform: scale(1.05);
+        }
+
+        .block:active {
+            cursor: grabbing;
+            transform: scale(0.95);
+        }
+
+        .block h4 {
+            color: #00ffff;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .block p {
+            color: #00ff00;
+            font-size: 0.7em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .flow-area {
+            flex: 1;
+            padding: 15px;
+            background: #000022;
+            position: relative;
+        }
+
+        .flow-area h3 {
+            margin-bottom: 15px;
+            color: #ffff00;
+            font-size: 1.1em;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px #ffff00;
+            letter-spacing: 2px;
+            border-bottom: 2px solid #ffff00;
+            padding-bottom: 5px;
+        }
+
+        .drop-zone {
+            min-height: 400px;
+            border: 3px dashed #00ff00;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 10px,
+                rgba(0, 255, 0, 0.05) 10px,
+                rgba(0, 255, 0, 0.05) 20px
+            );
+        }
+
+        .drop-zone.drag-over {
+            border-color: #ffff00;
+            background: rgba(255, 255, 0, 0.1);
+            box-shadow: inset 0 0 20px rgba(255, 255, 0, 0.3);
+        }
+
+        .drop-zone.has-blocks {
+            justify-content: flex-start;
+            padding-top: 20px;
+        }
+
+        .placeholder {
+            color: #00ff00;
+            font-size: 1em;
+            text-align: center;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px #00ff00;
+            animation: blink 2s infinite;
+        }
+
+        .flow-block {
+            background: #000;
+            border: 3px solid #00ffff;
+            padding: 12px;
+            margin-bottom: 15px;
+            width: 100%;
+            max-width: 400px;
+            position: relative;
+            box-shadow: 
+                0 0 15px #00ffff,
+                inset 0 0 10px rgba(0, 255, 255, 0.1);
+        }
+
+        .flow-block::before {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            right: 2px;
+            bottom: 2px;
+            background: linear-gradient(45deg, 
+                rgba(0, 255, 255, 0.1) 0%, 
+                rgba(255, 0, 255, 0.1) 50%, 
+                rgba(255, 255, 0, 0.1) 100%);
+            z-index: -1;
+        }
+
+        .flow-block::after {
+            content: '▼';
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #00ffff;
+            font-size: 20px;
+            font-weight: bold;
+            text-shadow: 0 0 10px #00ffff;
+            animation: pulse 2s infinite;
+        }
+
+        .flow-block:last-child::after {
+            display: none;
+        }
+
+        .flow-block h4 {
+            color: #ffff00;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .flow-block p {
+            color: #00ff00;
+            font-size: 0.7em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .remove-btn {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #ff0000;
+            color: #fff;
+            border: 2px solid #fff;
+            width: 25px;
+            height: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 10px #ff0000;
+        }
+
+        .remove-btn:hover {
+            background: #fff;
+            color: #ff0000;
+            box-shadow: 0 0 15px #ff0000;
+        }
+
+        .controls {
+            padding: 20px;
+            background: #001144;
+            text-align: center;
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            align-items: center;
+            border-top: 4px solid #00ff00;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #ff00ff, #00ffff);
+            color: #000;
+            border: 3px solid #fff;
+            padding: 12px 25px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: bold;
+            font-family: 'Orbitron', monospace;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.2s ease;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+            position: relative;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            right: 2px;
+            bottom: 2px;
+            background: linear-gradient(45deg, #ffff00, #ff00ff);
+            z-index: -1;
+        }
+
+        .btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 25px rgba(255, 255, 255, 0.8);
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .btn:disabled {
+            background: #333;
+            color: #666;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+            border-color: #666;
+        }
+
+        .btn:disabled::before {
+            background: #222;
+        }
+
+        .simulation-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .simulation-content {
+            background: #000;
+            border: 4px solid #00ffff;
+            padding: 40px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 
+                0 0 30px #00ffff,
+                inset 0 0 20px rgba(0, 255, 255, 0.1);
+        }
+
+        .simulation-content h2 {
+            color: #ffff00;
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-shadow: 0 0 15px #ffff00;
+        }
+
+        .simulation-content p {
+            color: #00ff00;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #001122;
+            border: 2px solid #00ff00;
+            overflow: hidden;
+            margin: 20px 0;
+            box-shadow: inset 0 0 10px rgba(0, 255, 0, 0.3);
+        }
+
+        .progress {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff00, #ffff00, #ff00ff);
+            width: 0%;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+            animation: progressGlow 1s infinite alternate;
+        }
+
+        .results {
+            display: none;
+            padding: 20px;
+            background: #000033;
+            border-top: 4px solid #ff00ff;
+        }
+
+        .score-card {
+            background: #000;
+            border: 4px solid #ffff00;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 20px;
+            box-shadow: 
+                0 0 25px #ffff00,
+                inset 0 0 15px rgba(255, 255, 0, 0.1);
+        }
+
+        .score {
+            font-size: 4em;
+            font-weight: 900;
+            color: #00ffff;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px #00ffff;
+            animation: scoreGlow 2s infinite alternate;
+        }
+
+        .score-card h3 {
+            color: #ffff00;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 1em;
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .metric {
+            background: #000;
+            border: 3px solid #ff00ff;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 
+                0 0 15px #ff00ff,
+                inset 0 0 10px rgba(255, 0, 255, 0.1);
+        }
+
+        .metric h4 {
+            color: #00ffff;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.8em;
+        }
+
+        .metric .value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #00ff00;
+            text-shadow: 0 0 10px #00ff00;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.3; }
+        }
+
+        @keyframes pulse {
+            0% { transform: translateX(-50%) scale(1); }
+            50% { transform: translateX(-50%) scale(1.2); }
+            100% { transform: translateX(-50%) scale(1); }
+        }
+
+        @keyframes shine {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        @keyframes progressGlow {
+            0% { box-shadow: 0 0 5px rgba(255, 255, 255, 0.5); }
+            100% { box-shadow: 0 0 20px rgba(255, 255, 255, 1); }
+        }
+
+        @keyframes scoreGlow {
+            0% { text-shadow: 0 0 10px #00ffff; }
+            100% { text-shadow: 0 0 30px #00ffff, 0 0 40px #00ffff; }
+        }
+
+        .simulating {
+            animation: pulse 1s infinite;
+        }
+
+        /* Retro scan lines effect */
+        .container::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0, 255, 0, 0.03) 2px,
+                rgba(0, 255, 0, 0.03) 4px
+            );
+            pointer-events: none;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>█ IVR FLOW BUILDER █</h1>
+            <p>DESIGN THE PERFECT CUSTOMER JOURNEY FOR PENSIONPRO</p>
+        </div>
+
+        <div class="game-area">
+            <div class="blocks-panel">
+                <h3>▼ AVAILABLE BLOCKS ▼</h3>
+                
+                <div class="block" data-type="welcome">
+                    <h4>♪ WELCOME MESSAGE</h4>
+                    <p>GREET CUSTOMERS WITH FRIENDLY MESSAGE</p>
+                </div>
+
+                <div class="block" data-type="id-verify">
+                    <h4>◊ ID VERIFICATION</h4>
+                    <p>SECURE CUSTOMER AUTHENTICATION</p>
+                </div>
+
+                <div class="block" data-type="menu">
+                    <h4>≡ MAIN MENU</h4>
+                    <p>PRESENT SERVICE OPTIONS TO CUSTOMERS</p>
+                </div>
+
+                <div class="block" data-type="app-deflection">
+                    <h4>▣ APP DEFLECTION</h4>
+                    <p>DIRECT TECH-SAVVY USERS TO MOBILE APP</p>
+                </div>
+
+                <div class="block" data-type="queue-info">
+                    <h4>⧖ QUEUE INFORMATION</h4>
+                    <p>INFORM ABOUT CURRENT WAIT TIMES</p>
+                </div>
+
+                <div class="block" data-type="advisor">
+                    <h4>◙ CONNECT TO ADVISOR</h4>
+                    <p>TRANSFER TO HUMAN SPECIALIST</p>
+                </div>
+
+                <div class="block" data-type="callback">
+                    <h4>☎ CALLBACK OPTION</h4>
+                    <p>OFFER TO CALL CUSTOMER BACK</p>
+                </div>
+
+                <div class="block" data-type="self-service">
+                    <h4>◈ SELF-SERVICE PORTAL</h4>
+                    <p>AUTOMATED BALANCE AND INFO LOOKUP</p>
+                </div>
+            </div>
+
+            <div class="flow-area">
+                <h3>▼ YOUR IVR FLOW ▼</h3>
+                <div class="drop-zone" id="dropZone">
+                    <div class="placeholder">▲ DRAG BLOCKS HERE TO BUILD YOUR IVR FLOW ▲</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn" id="clearBtn">◄ CLEAR FLOW</button>
+            <button class="btn" id="simulateBtn" disabled>► RUN SIMULATION (1000 CALLS)</button>
+            <button class="btn" id="resetBtn" style="display: none;">◄► TRY AGAIN</button>
+        </div>
+
+        <div class="results" id="results">
+            <div class="score-card">
+                <div class="score" id="totalScore">0</div>
+                <h3>OVERALL PERFORMANCE SCORE</h3>
+            </div>
+            <div class="metrics">
+                <div class="metric">
+                    <h4>AVERAGE CALL TIME</h4>
+                    <div class="value" id="avgCallTime">0 MIN</div>
+                </div>
+                <div class="metric">
+                    <h4>CUSTOMER SATISFACTION</h4>
+                    <div class="value" id="satisfaction">0%</div>
+                </div>
+                <div class="metric">
+                    <h4>COST PER CALL</h4>
+                    <div class="value" id="costPerCall">£0.00</div>
+                </div>
+                <div class="metric">
+                    <h4>APP DEFLECTION RATE</h4>
+                    <div class="value" id="deflectionRate">0%</div>
+                </div>
+                <div class="metric">
+                    <h4>ABANDONMENT RATE</h4>
+                    <div class="value" id="abandonmentRate">0%</div>
+                </div>
+                <div class="metric">
+                    <h4>TOTAL COST (1000 CALLS)</h4>
+                    <div class="value" id="totalCost">£0</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="simulation-overlay" id="simulationOverlay">
+        <div class="simulation-content">
+            <h2>◄► RUNNING SIMULATION</h2>
+            <p>PROCESSING 1000 CUSTOMER CALLS THROUGH YOUR IVR FLOW...</p>
+            <div class="progress-bar">
+                <div class="progress" id="progress"></div>
+            </div>
+            <p id="progressText">0 / 1000 CALLS PROCESSED</p>
+        </div>
+    </div>
+
+    <script>
+        let flowBlocks = [];
+        let isDragging = false;
+
+        // Customer personas for simulation
+        const customerPersonas = [
+            { type: 'impatient', waitTime: 30, preferApp: false, satisfaction: 0.3 },
+            { type: 'tech-savvy', waitTime: 120, preferApp: true, satisfaction: 0.8 },
+            { type: 'elderly', waitTime: 300, preferApp: false, satisfaction: 0.6 },
+            { type: 'angry', waitTime: 15, preferApp: false, satisfaction: 0.2 },
+            { type: 'patient', waitTime: 600, preferApp: false, satisfaction: 0.9 },
+            { type: 'busy', waitTime: 60, preferApp: true, satisfaction: 0.5 }
+        ];
+
+        // Block configurations
+        const blockConfigs = {
+            'welcome': { time: 15, satisfaction: 0.1, abandonment: 0.02, cost: 0.05 },
+            'id-verify': { time: 45, satisfaction: -0.1, abandonment: 0.05, cost: 0.15 },
+            'menu': { time: 20, satisfaction: 0.05, abandonment: 0.03, cost: 0.08 },
+            'app-deflection': { time: 25, satisfaction: 0.2, abandonment: 0.1, deflection: 0.3, cost: 0.10 },
+            'queue-info': { time: 10, satisfaction: 0.15, abandonment: -0.05, cost: 0.04 },
+            'advisor': { time: 300, satisfaction: 0.4, abandonment: 0, cost: 8.50 },
+            'callback': { time: 30, satisfaction: 0.3, abandonment: -0.15, cost: 0.75 },
+            'self-service': { time: 90, satisfaction: 0.2, abandonment: 0.1, deflection: 0.2, cost: 0.25 }
+        };
+
+        // Initialize drag and drop
+        document.addEventListener('DOMContentLoaded', function() {
+            const blocks = document.querySelectorAll('.block');
+            const dropZone = document.getElementById('dropZone');
+            const simulateBtn = document.getElementById('simulateBtn');
+            const clearBtn = document.getElementById('clearBtn');
+            const resetBtn = document.getElementById('resetBtn');
+
+            blocks.forEach(block => {
+                block.addEventListener('dragstart', handleDragStart);
+                block.draggable = true;
+            });
+
+            dropZone.addEventListener('dragover', handleDragOver);
+            dropZone.addEventListener('drop', handleDrop);
+            dropZone.addEventListener('dragenter', handleDragEnter);
+            dropZone.addEventListener('dragleave', handleDragLeave);
+
+            simulateBtn.addEventListener('click', runSimulation);
+            clearBtn.addEventListener('click', clearFlow);
+            resetBtn.addEventListener('click', resetGame);
+        });
+
+        function handleDragStart(e) {
+            isDragging = true;
+            e.dataTransfer.setData('text/plain', e.target.dataset.type);
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+        }
+
+        function handleDragEnter(e) {
+            e.preventDefault();
+            document.getElementById('dropZone').classList.add('drag-over');
+        }
+
+        function handleDragLeave(e) {
+            if (!e.relatedTarget || !e.currentTarget.contains(e.relatedTarget)) {
+                document.getElementById('dropZone').classList.remove('drag-over');
+            }
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            const dropZone = document.getElementById('dropZone');
+            dropZone.classList.remove('drag-over');
+            
+            const blockType = e.dataTransfer.getData('text/plain');
+            addBlockToFlow(blockType);
+        }
+
+        function addBlockToFlow(blockType) {
+            const blockData = getBlockData(blockType);
+            flowBlocks.push(blockData);
+            renderFlow();
+            updateButtons();
+        }
+
+        function getBlockData(type) {
+            const blockTexts = {
+                'welcome': { title: '♪ WELCOME MESSAGE', desc: 'GREET CUSTOMERS WITH FRIENDLY MESSAGE' },
+                'id-verify': { title: '◊ ID VERIFICATION', desc: 'SECURE CUSTOMER AUTHENTICATION' },
+                'menu': { title: '≡ MAIN MENU', desc: 'PRESENT SERVICE OPTIONS TO CUSTOMERS' },
+                'app-deflection': { title: '▣ APP DEFLECTION', desc: 'DIRECT TECH-SAVVY USERS TO MOBILE APP' },
+                'queue-info': { title: '⧖ QUEUE INFORMATION', desc: 'INFORM ABOUT CURRENT WAIT TIMES' },
+                'advisor': { title: '◙ CONNECT TO ADVISOR', desc: 'TRANSFER TO HUMAN SPECIALIST' },
+                'callback': { title: '☎ CALLBACK OPTION', desc: 'OFFER TO CALL CUSTOMER BACK' },
+                'self-service': { title: '◈ SELF-SERVICE PORTAL', desc: 'AUTOMATED BALANCE AND INFO LOOKUP' }
+            };
+
+            return {
+                type: type,
+                title: blockTexts[type].title,
+                desc: blockTexts[type].desc,
+                id: Date.now() + Math.random()
+            };
+        }
+
+        function renderFlow() {
+            const dropZone = document.getElementById('dropZone');
+            
+            if (flowBlocks.length === 0) {
+                dropZone.innerHTML = '<div class="placeholder">▲ DRAG BLOCKS HERE TO BUILD YOUR IVR FLOW ▲</div>';
+                dropZone.classList.remove('has-blocks');
+            } else {
+                dropZone.classList.add('has-blocks');
+                dropZone.innerHTML = flowBlocks.map(block => `
+                    <div class="flow-block" data-id="${block.id}">
+                        <button class="remove-btn" onclick="removeBlock('${block.id}')">×</button>
+                        <h4>${block.title}</h4>
+                        <p>${block.desc}</p>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function removeBlock(id) {
+            flowBlocks = flowBlocks.filter(block => block.id !== id);
+            renderFlow();
+            updateButtons();
+        }
+
+        function clearFlow() {
+            flowBlocks = [];
+            renderFlow();
+            updateButtons();
+        }
+
+        function updateButtons() {
+            const simulateBtn = document.getElementById('simulateBtn');
+            simulateBtn.disabled = flowBlocks.length === 0;
+        }
+
+        function runSimulation() {
+            const overlay = document.getElementById('simulationOverlay');
+            const progress = document.getElementById('progress');
+            const progressText = document.getElementById('progressText');
+            
+            overlay.style.display = 'flex';
+            document.querySelector('.simulation-content').classList.add('simulating');
+            
+            let processed = 0;
+            const total = 1000;
+            
+            const interval = setInterval(() => {
+                processed += Math.floor(Math.random() * 50) + 10;
+                if (processed >= total) {
+                    processed = total;
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        overlay.style.display = 'none';
+                        showResults();
+                    }, 500);
+                }
+                
+                const percentage = (processed / total) * 100;
+                progress.style.width = percentage + '%';
+                progressText.textContent = `${processed} / ${total} CALLS PROCESSED`;
+            }, 100);
+        }
+
+        function showResults() {
+            const results = calculateResults();
+            
+            document.getElementById('totalScore').textContent = results.totalScore;
+            document.getElementById('avgCallTime').textContent = results.avgCallTime + ' MIN';
+            document.getElementById('satisfaction').textContent = results.satisfaction + '%';
+            document.getElementById('costPerCall').textContent = '£' + results.costPerCall;
+            document.getElementById('deflectionRate').textContent = results.deflectionRate + '%';
+            document.getElementById('abandonmentRate').textContent = results.abandonmentRate + '%';
+            document.getElementById('totalCost').textContent = '£' + results.totalCost;
+            
+            document.getElementById('results').style.display = 'block';
+            document.getElementById('resetBtn').style.display = 'inline-block';
+            document.getElementById('simulateBtn').style.display = 'none';
+        }
+
+        function calculateResults() {
+            // Simulate realistic results based on flow configuration
+            let totalTime = 0;
+            let totalSatisfaction = 0.5; // Base satisfaction
+            let deflectionRate = 0;
+            let abandonmentRate = 0.1; // Base abandonment
+            let totalCost = 0;
+            
+            flowBlocks.forEach(block => {
+                const config = blockConfigs[block.type];
+                totalTime += config.time;
+                totalSatisfaction += config.satisfaction;
+                totalCost += config.cost;
+                if (config.deflection) deflectionRate += config.deflection;
+                abandonmentRate += config.abandonment;
+            });
+            
+            // Add some randomness and realistic constraints
+            totalTime = Math.max(60, totalTime + (Math.random() * 30 - 15));
+            totalSatisfaction = Math.max(0.1, Math.min(1.0, totalSatisfaction + (Math.random() * 0.2 - 0.1)));
+            deflectionRate = Math.max(0, Math.min(0.5, deflectionRate + (Math.random() * 0.1 - 0.05)));
+            abandonmentRate = Math.max(0.02, Math.min(0.3, abandonmentRate + (Math.random() * 0.05 - 0.025)));
+            totalCost = Math.max(0.50, totalCost + (Math.random() * 0.5 - 0.25));
+            
+            // Calculate cost efficiency - lower cost per call is better
+            const costScore = Math.max(0, 100 - (totalCost - 1) * 10);
+            
+            // Calculate overall score (lower time and abandonment = better, higher satisfaction and deflection = better, lower cost = better)
+            const timeScore = Math.max(0, 100 - (totalTime - 60) * 0.5);
+            const satisfactionScore = totalSatisfaction * 100;
+            const deflectionScore = deflectionRate * 50;
+            const abandonmentScore = Math.max(0, 100 - abandonmentRate * 200);
+            
+            // Include cost in overall score calculation (25% weight)
+            const totalScore = Math.round((timeScore + satisfactionScore + deflectionScore + abandonmentScore + costScore) / 5);
+            
+            return {
+                totalScore: totalScore,
+                avgCallTime: (totalTime / 60).toFixed(1),
+                satisfaction: Math.round(totalSatisfaction * 100),
+                deflectionRate: Math.round(deflectionRate * 100),
+                abandonmentRate: Math.round(abandonmentRate * 100),
+                costPerCall: totalCost.toFixed(2),
+                totalCost: Math.round(totalCost * 1000)
+            };
+        }
+
+        function resetGame() {
+            flowBlocks = [];
+            renderFlow();
+            updateButtons();
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('resetBtn').style.display = 'none';
+            document.getElementById('simulateBtn').style.display = 'inline-block';
+        }
+    </script>
+</body>
+</html>
