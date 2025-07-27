@@ -437,6 +437,10 @@
             text-align: center;
             max-width: 500px;
             width: 90%;
+            position: relative;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             box-shadow: 
                 0 0 30px #00ffff,
                 inset 0 0 20px rgba(0, 255, 255, 0.1);
@@ -1044,11 +1048,19 @@
                 dropZone.classList.add('has-blocks');
                 dropZone.innerHTML = flowBlocks.map(block => `
                     <div class="flow-block" data-id="${block.id}">
-                        <button class="remove-btn" onclick="removeBlock('${block.id}')">×</button>
+                        <button class="remove-btn" data-block-id="${block.id}">×</button>
                         <h4>${block.title}</h4>
                         <p>${block.desc}</p>
                     </div>
                 `).join('');
+                
+                // Add event listeners to remove buttons
+                dropZone.querySelectorAll('.remove-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const blockId = e.target.dataset.blockId;
+                        removeBlock(blockId);
+                    });
+                });
             }
         }
 
