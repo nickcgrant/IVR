@@ -969,7 +969,7 @@
             simulateBtn.addEventListener('click', runSimulation);
             clearBtn.addEventListener('click', clearFlow);
             resetBtn.addEventListener('click', resetGame);
-            userNameInput.addEventListener('input', handleNameInput);
+            userNameInput.addEventListener('blur', handleNameInput);
             userNameInput.addEventListener('keypress', handleNameKeypress);
             leaderboardBtn.addEventListener('click', showLeaderboard);
             closeLeaderboard.addEventListener('click', hideLeaderboard);
@@ -1087,7 +1087,7 @@
 
         function handleNameKeypress(e) {
             if (e.key === 'Enter') {
-                e.target.blur();
+                e.target.blur(); // This will trigger the handleNameInput function
             }
         }
 
